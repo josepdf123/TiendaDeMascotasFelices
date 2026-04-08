@@ -1,0 +1,280 @@
+{% extends 'tienda/base.html' %}
+
+{% block title %}{{ producto.nombre }} · Mascotas Felices{% endblock %}
+
+{% block extra_css %}
+<style>
+  .detalle-wrap {
+    max-width: 960px;
+    margin: 32px auto;
+    padding: 0 16px;
+  }
+
+  .back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--gris-texto); text-decoration: none;
+    font-size: 0.9rem; margin-bottom: 24px;
+    transition: color var(--transicion);
+  }
+  .back-link:hover { color: var(--morado-oscuro); }
+
+  /* Layout principal */
+  .producto-detalle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 48px;
+  }
+  @media (max-width: 700px) {
+    .producto-detalle { grid-template-columns: 1fr; gap: 24px; }
+  }
+
+  /* Imagen */
+  .detalle-imagen {
+    border-radius: var(--radio-lg);
+    overflow: hidden;
+    background: var(--morado-palido);
+    aspect-ratio: 1 / 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .detalle-imagen img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .detalle-imagen .sin-imagen {
+    font-size: 6rem; opacity: 0.4;
+  }
+
+  /* Info */
+  .detalle-info { display: flex; flex-direction: column; gap: 16px; }
+
+  .detalle-categoria {
+    font-size: 0.8rem; font-weight: 800;
+    color: var(--morado); text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  .detalle-nombre {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    color: var(--morado-oscuro);
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  .detalle-precio {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    color: var(--morado-oscuro);
+  }
+
+  .detalle-descripcion {
+    font-size: 0.95rem;
+    color: var(--gris-texto);
+    line-height: 1.7;
+  }
+
+  .detalle-stock {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.85rem; font-weight: 700;
+    color: var(--gris-texto);
+  }
+  .stock-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #4caf50;
+  }
+  .stock-dot.agotado { background: var(--error); }
+
+  /* Botones de acción */
+  .detalle-acciones {
+    display: flex; flex-direction: column; gap: 12px;
+    margin-top: 8px;
+  }
+
+  .btn-agregar {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: var(--morado);
+    color: white;
+    padding: 14px 24px;
+    border-radius: var(--radio-lg);
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem; font-weight: 800;
+    text-decoration: none;
+    border: none; cursor: pointer;
+    transition: background var(--transicion), transform var(--transicion);
+  }
+  .btn-agregar:hover { background: var(--morado-oscuro); transform: translateY(-2px); }
+  .btn-agregar:disabled, .btn-agregar.agotado {
+    background: var(--gris-texto); cursor: not-allowed; transform: none; opacity: 0.6;
+  }
+
+  .btn-volver {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: transparent;
+    color: var(--morado-oscuro);
+    padding: 12px 24px;
+    border-radius: var(--radio-lg);
+    border: 2px solid var(--morado-suave);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem; font-weight: 700;
+    text-decoration: none;
+    transition: all var(--transicion);
+  }
+  .btn-volver:hover { background: var(--morado-palido); border-color: var(--morado); }
+
+  /* Aviso no logueado */
+  .aviso-login {
+    background: var(--morado-palido);
+    border: 2px dashed var(--morado-suave);
+    border-radius: var(--radio-lg);
+    padding: 16px 20px;
+    font-size: 0.9rem;
+    color: var(--morado-oscuro);
+    font-weight: 700;
+    text-align: center;
+  }
+  .aviso-login a { color: var(--morado-oscuro); text-decoration: underline; }
+
+  /* Relacionados */
+  .relacionados-titulo {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.4rem;
+    color: var(--morado-oscuro);
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .relacionados-titulo::after {
+    content: ''; flex: 1; height: 2px;
+    background: var(--morado-palido); border-radius: 2px;
+  }
+
+  .relacionados-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+  }
+
+  .producto-card {
+    background: var(--blanco);
+    border-radius: var(--radio-lg);
+    box-shadow: var(--sombra);
+    overflow: hidden;
+    transition: transform var(--transicion), box-shadow var(--transicion);
+    text-decoration: none;
+    display: flex; flex-direction: column;
+  }
+  .producto-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--sombra-hover);
+  }
+  .producto-img-wrap {
+    aspect-ratio: 1/1;
+    background: var(--morado-palido);
+    overflow: hidden;
+  }
+  .producto-img-wrap img { width:100%; height:100%; object-fit:cover; }
+  .producto-sin-imagen { font-size:3rem; opacity:0.4; display:flex; align-items:center; justify-content:center; height:100%; }
+  .producto-info { padding: 12px 14px; }
+  .producto-nombre { font-weight: 800; font-size: 0.9rem; color: var(--texto); margin-bottom: 4px; }
+  .producto-precio {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem; color: var(--morado-oscuro);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detalle-wrap">
+
+  <a href="{% url 'catalogo' %}" class="back-link">← Volver al catálogo</a>
+
+  <!-- DETALLE PRINCIPAL -->
+  <div class="producto-detalle">
+
+    <!-- Imagen -->
+    <div class="detalle-imagen">
+      {% if producto.imagen %}
+        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+      {% else %}
+        <span class="sin-imagen">🐾</span>
+      {% endif %}
+    </div>
+
+    <!-- Info -->
+    <div class="detalle-info">
+      {% if producto.categoria %}
+        <div class="detalle-categoria">
+          {% if producto.categoria.icono %}{{ producto.categoria.icono }}{% endif %}
+          {{ producto.categoria.nombre }}
+        </div>
+      {% endif %}
+
+      <h1 class="detalle-nombre">{{ producto.nombre }}</h1>
+
+      <div class="detalle-precio">${{ producto.precio|floatformat:"0" }}</div>
+
+      <p class="detalle-descripcion">{{ producto.descripcion }}</p>
+
+      <!-- Stock -->
+      {% if producto.stock > 0 %}
+        <div class="detalle-stock">
+          <span class="stock-dot"></span>
+          {{ producto.stock }} unidades disponibles
+        </div>
+      {% else %}
+        <div class="detalle-stock">
+          <span class="stock-dot agotado"></span>
+          Agotado
+        </div>
+      {% endif %}
+
+      <!-- Acciones -->
+      <div class="detalle-acciones">
+        {% if user.is_authenticated %}
+          {% if producto.stock > 0 %}
+            <a href="{% url 'agregar_carrito' producto.id %}" class="btn-agregar">
+              🛒 Agregar al carrito
+            </a>
+          {% else %}
+            <button class="btn-agregar agotado" disabled>
+              😢 Producto agotado
+            </button>
+          {% endif %}
+        {% else %}
+          <div class="aviso-login">
+            <a href="{% url 'login' %}">Inicia sesión</a> o
+            <a href="{% url 'registro' %}">regístrate</a> para agregar al carrito.
+          </div>
+        {% endif %}
+
+        <a href="{% url 'catalogo' %}" class="btn-volver">
+          ← Seguir comprando
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PRODUCTOS RELACIONADOS -->
+  {% if relacionados %}
+    <h2 class="relacionados-titulo">🐾 También te puede gustar</h2>
+    <div class="relacionados-grid">
+      {% for rel in relacionados %}
+        <a href="{% url 'detalle_producto' rel.pk %}" class="producto-card">
+          <div class="producto-img-wrap">
+            {% if rel.imagen %}
+              <img src="{{ rel.imagen.url }}" alt="{{ rel.nombre }}" loading="lazy">
+            {% else %}
+              <div class="producto-sin-imagen">🐾</div>
+            {% endif %}
+          </div>
+          <div class="producto-info">
+            <div class="producto-nombre">{{ rel.nombre }}</div>
+            <div class="producto-precio">${{ rel.precio|floatformat:"0" }}</div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

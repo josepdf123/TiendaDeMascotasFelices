@@ -1,0 +1,24 @@
+databases:
+  - name: mascotas-felices-db
+    databaseName: mascotas_felices
+    user: mascotas_user
+    plan: free
+
+services:
+  - type: web
+    name: mascotas-felices
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn mascotas_felices.wsgi:application"
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mascotas-felices-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: "3.11.0"

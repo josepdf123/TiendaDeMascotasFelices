@@ -1,0 +1,466 @@
+{% extends 'tienda/base.html' %}
+
+{% block title %}Catálogo · Mascotas Felices{% endblock %}
+{% block nav_catalogo %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ─── Hero ─────────────────────────────────────── */
+  .hero {
+    background: linear-gradient(135deg, var(--morado-palido) 0%, #f0e9fc 60%, var(--blanco) 100%);
+    border-radius: var(--radio-lg);
+    padding: 56px 40px;
+    margin-bottom: 40px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    right: -40px; top: -40px;
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, var(--morado-suave) 0%, transparent 70%);
+    opacity: 0.4;
+    border-radius: 50%;
+  }
+  .hero-text { flex: 1; position: relative; z-index: 1; }
+  .hero-text h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(2rem, 5vw, 3rem);
+    color: var(--morado-oscuro);
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+  .hero-text h1 span { color: var(--morado); }
+  .hero-text p {
+    font-size: 1.05rem;
+    color: var(--gris-texto);
+    max-width: 420px;
+    line-height: 1.6;
+  }
+  .hero-emojis {
+    font-size: 5rem;
+    position: relative; z-index: 1;
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-10px); }
+  }
+
+  /* ─── Filtros de categoría ──────────────────────── */
+  .filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+  .filtro-btn {
+    padding: 9px 20px;
+    border-radius: 50px;
+    border: 2px solid var(--morado-suave);
+    background: var(--blanco);
+    color: var(--gris-texto);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 0.88rem;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all var(--transicion);
+  }
+  .filtro-btn:hover { border-color: var(--morado); color: var(--morado-oscuro); background: var(--morado-palido); }
+  .filtro-btn.activo { background: var(--morado); color: white; border-color: var(--morado); }
+
+  /* ─── Sección destacados ────────────────────────── */
+  .seccion-titulo {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem;
+    color: var(--morado-oscuro);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .seccion-titulo::after {
+    content: '';
+    flex: 1;
+    height: 2px;
+    background: var(--morado-palido);
+    border-radius: 2px;
+  }
+
+  /* ─── Grid de productos ─────────────────────────── */
+  .productos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 24px;
+  }
+
+  /* ─── Tarjeta de producto ───────────────────────── */
+  .producto-card {
+    background: var(--blanco);
+    border-radius: var(--radio-lg);
+    box-shadow: var(--sombra);
+    overflow: hidden;
+    transition: transform var(--transicion), box-shadow var(--transicion);
+    display: flex;
+    flex-direction: column;
+  }
+  .producto-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--sombra-hover);
+  }
+  .producto-img-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: var(--morado-palido);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .producto-img-wrap img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+  .producto-card:hover .producto-img-wrap img { transform: scale(1.06); }
+  .producto-sin-imagen {
+    font-size: 4rem;
+    opacity: 0.5;
+  }
+  .badge-agotado-overlay {
+    position: absolute;
+    top: 12px; left: 12px;
+    background: var(--error);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 800;
+  }
+  .badge-destacado-overlay {
+    position: absolute;
+    top: 12px; right: 12px;
+    background: var(--advertencia);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 800;
+  }
+
+  .producto-info {
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .producto-categoria {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--morado);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+  }
+  .producto-nombre {
+    font-weight: 800;
+    font-size: 1rem;
+    color: var(--texto);
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+  .producto-descripcion {
+    font-size: 0.82rem;
+    color: var(--gris-texto);
+    line-height: 1.5;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .producto-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 14px;
+    gap: 8px;
+  }
+  .producto-precio {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    color: var(--morado-oscuro);
+  }
+  .producto-stock {
+    font-size: 0.75rem;
+    color: var(--gris-texto);
+    font-weight: 600;
+  }
+
+  /* ─── Sin resultados ─────────────────────────────── */
+  .sin-resultados {
+    text-align: center;
+    padding: 64px 24px;
+    color: var(--gris-texto);
+  }
+  .sin-resultados .emoji { font-size: 4rem; margin-bottom: 16px; }
+  .sin-resultados h3 { font-family: 'Fredoka One', cursive; font-size: 1.4rem; color: var(--morado-oscuro); margin-bottom: 8px; }
+
+  /* ─── Aviso login ─────────────────────────────────── */
+  .aviso-login {
+    background: var(--morado-palido);
+    border: 2px dashed var(--morado-suave);
+    border-radius: var(--radio-lg);
+    padding: 20px 24px;
+    text-align: center;
+    margin-bottom: 32px;
+    font-size: 0.95rem;
+    color: var(--morado-oscuro);
+    font-weight: 700;
+  }
+  .aviso-login a { color: var(--morado-oscuro); text-decoration: underline; }
+
+  /* ─── Toggle de vista ─────────────────────────────── */
+  .btn-vista {
+    background: var(--blanco);
+    border: 2px solid var(--morado-suave);
+    border-radius: var(--radio);
+    padding: 7px 10px;
+    cursor: pointer;
+    color: var(--gris-texto);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transicion);
+  }
+  .btn-vista:hover { border-color: var(--morado); color: var(--morado-oscuro); }
+  .btn-vista.activo { background: var(--morado); border-color: var(--morado); color: white; }
+
+  /* ─── Vista lista ─────────────────────────────────── */
+  #productos-grid.vista-lista {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  #productos-grid.vista-lista a {
+    display: block;
+  }
+  #productos-grid.vista-lista .producto-card {
+    flex-direction: row;
+    height: 110px;
+  }
+  #productos-grid.vista-lista .producto-img-wrap {
+    width: 110px;
+    min-width: 110px;
+    aspect-ratio: unset;
+    height: 100%;
+    border-radius: var(--radio-lg) 0 0 var(--radio-lg);
+  }
+  #productos-grid.vista-lista .producto-info {
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+  }
+  #productos-grid.vista-lista .producto-nombre {
+    font-size: 1rem;
+    margin-bottom: 0;
+    flex: 1;
+  }
+  #productos-grid.vista-lista .producto-descripcion {
+    display: none;
+  }
+  #productos-grid.vista-lista .producto-categoria {
+    display: none;
+  }
+  #productos-grid.vista-lista .producto-footer {
+    margin-top: 0;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    min-width: 100px;
+  }
+
+  @media (max-width: 600px) {
+    .hero { padding: 32px 20px; flex-direction: column; text-align: center; }
+    .hero-emojis { font-size: 3rem; }
+    .productos-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    #productos-grid.vista-lista .producto-card { height: auto; flex-direction: row; }
+    #productos-grid.vista-lista .producto-img-wrap { width: 80px; min-width: 80px; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-text">
+    <h1>Todo para tu<br><span>mascota feliz</span> 🐶🐱</h1>
+    <p>Encontrá alimentos, accesorios, juguetes y mucho más para consentir a tus peluditos. Con domicilio en Funza.</p>
+  </div>
+  <div class="hero-emojis">🐾</div>
+</section>
+
+<!-- Aviso si no está logueado -->
+{% if not user.is_authenticated %}
+  <div class="aviso-login">
+    ¿Querés hacer un pedido? <a href="{% url 'login' %}">Iniciá sesión</a> o <a href="{% url 'registro' %}">registrate</a> para comprar.
+  </div>
+{% endif %}
+
+<!-- Filtros por categoría -->
+{% if categorias %}
+<div class="filtros">
+  <a href="{% url 'catalogo' %}{% if request.GET.q %}?q={{ request.GET.q }}{% endif %}"
+     class="filtro-btn {% if not categoria_activa %}activo{% endif %}">
+    🐾 Todos
+  </a>
+  {% for cat in categorias %}
+    <a href="?categoria={{ cat.slug }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+       class="filtro-btn {% if categoria_activa == cat.slug %}activo{% endif %}">
+      {% if cat.icono %}{{ cat.icono }} {% endif %}{{ cat.nombre }}
+    </a>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Destacados (solo en vista sin filtros activos) -->
+{% if destacados and not categoria_activa and not busqueda %}
+  <h2 class="seccion-titulo">⭐ Destacados</h2>
+  <div class="productos-grid" style="margin-bottom: 40px;">
+    {% for producto in destacados %}
+      <a href="{% url 'detalle_producto' producto.pk %}" style="text-decoration:none;">
+        <div class="producto-card">
+          <div class="producto-img-wrap">
+            {% if producto.imagen %}
+              <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" loading="lazy">
+            {% else %}
+              <span class="producto-sin-imagen">🐾</span>
+            {% endif %}
+            {% if not producto.disponible %}<span class="badge-agotado-overlay">Agotado</span>{% endif %}
+            <span class="badge-destacado-overlay">⭐</span>
+          </div>
+          <div class="producto-info">
+            {% if producto.categoria %}<div class="producto-categoria">{{ producto.categoria.nombre }}</div>{% endif %}
+            <div class="producto-nombre">{{ producto.nombre }}</div>
+            <div class="producto-footer">
+              <span class="producto-precio">${{ producto.precio|floatformat:"0" }}</span>
+              {% if producto.disponible %}
+                <span class="badge badge-disponible">{{ producto.stock }} disponibles</span>
+              {% else %}
+                <span class="badge badge-agotado">Agotado</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<!-- Encabezado + toggle de vista -->
+<div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+  {% if busqueda %}
+    <h2 class="seccion-titulo" style="margin-bottom:0;">🔍 Resultados para "{{ busqueda }}"</h2>
+  {% elif categoria_activa %}
+    <h2 class="seccion-titulo" style="margin-bottom:0;">📦 {{ categoria_activa|title }}</h2>
+  {% else %}
+    <h2 class="seccion-titulo" style="margin-bottom:0;">📦 Todos los productos</h2>
+  {% endif %}
+
+  <div style="display:flex; align-items:center; gap:8px;">
+    <span style="font-size:0.85rem; color:var(--gris-texto); font-weight:700;">Vista:</span>
+    <button id="btn-cards" onclick="setVista('cards')" class="btn-vista activo" title="Vista en cards" aria-label="Vista en cards">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <rect x="3" y="3" width="7" height="7" rx="1"/>
+        <rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/>
+        <rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+    </button>
+    <button id="btn-lista" onclick="setVista('lista')" class="btn-vista" title="Vista en lista" aria-label="Vista en lista">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+{% if productos %}
+  <div class="productos-grid" id="productos-grid">
+    {% for producto in productos %}
+      <a href="{% url 'detalle_producto' producto.pk %}" style="text-decoration:none;">
+        <div class="producto-card">
+          <div class="producto-img-wrap">
+            {% if producto.imagen %}
+              <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" loading="lazy">
+            {% else %}
+              <span class="producto-sin-imagen">🐾</span>
+            {% endif %}
+            {% if not producto.disponible %}<span class="badge-agotado-overlay">Agotado</span>{% endif %}
+          </div>
+          <div class="producto-info">
+            {% if producto.categoria %}<div class="producto-categoria">{{ producto.categoria.icono }} {{ producto.categoria.nombre }}</div>{% endif %}
+            <div class="producto-nombre">{{ producto.nombre }}</div>
+            <div class="producto-descripcion">{{ producto.descripcion }}</div>
+            <div class="producto-footer">
+              <span class="producto-precio">${{ producto.precio|floatformat:"0" }}</span>
+              {% if producto.disponible %}
+                <span class="badge badge-disponible">{{ producto.stock }} uds.</span>
+              {% else %}
+                <span class="badge badge-agotado">Agotado</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="sin-resultados">
+    <div class="emoji">🔍</div>
+    {% if busqueda %}
+      <h3>Sin resultados para "{{ busqueda }}"</h3>
+      <p>Intentá con otro término o explorá todas las categorías.</p>
+    {% else %}
+      <h3>No hay productos disponibles por el momento</h3>
+      <p>Volvé pronto, estamos cargando el catálogo.</p>
+    {% endif %}
+    <a href="{% url 'catalogo' %}" class="btn btn-outline mt-16">Ver todo el catálogo</a>
+  </div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function setVista(tipo) {
+    const grid = document.getElementById('productos-grid');
+    const btnCards = document.getElementById('btn-cards');
+    const btnLista = document.getElementById('btn-lista');
+
+    if (!grid) return;
+
+    if (tipo === 'lista') {
+      grid.classList.add('vista-lista');
+      btnLista.classList.add('activo');
+      btnCards.classList.remove('activo');
+    } else {
+      grid.classList.remove('vista-lista');
+      btnCards.classList.add('activo');
+      btnLista.classList.remove('activo');
+    }
+  }
+</script>
+{% endblock %}

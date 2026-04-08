@@ -1,0 +1,359 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Mascotas Felices{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+  <style>
+    /* ─── Variables ─────────────────────────────────── */
+    :root {
+      --morado:        #9B7EC8;
+      --morado-suave:  #C9B8E8;
+      --morado-palido: #EDE5F8;
+      --morado-oscuro: #6A4E9E;
+      --blanco:        #FFFFFF;
+      --gris-claro:    #F8F5FD;
+      --gris-texto:    #6B6B8A;
+      --texto:         #3A2E5C;
+      --exito:         #6DBF7E;
+      --error:         #E57373;
+      --advertencia:   #FFB347;
+      --radio:         16px;
+      --radio-lg:      24px;
+      --sombra:        0 4px 20px rgba(155, 126, 200, 0.18);
+      --sombra-hover:  0 8px 32px rgba(155, 126, 200, 0.32);
+      --transicion:    0.25s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ─── Reset & Base ──────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--gris-claro);
+      color: var(--texto);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    a { color: var(--morado-oscuro); text-decoration: none; transition: color var(--transicion); }
+    a:hover { color: var(--morado); }
+
+    img { max-width: 100%; display: block; }
+
+    /* ─── Navbar ────────────────────────────────────── */
+    .navbar {
+      background: var(--blanco);
+      box-shadow: 0 2px 16px rgba(155,126,200,0.13);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .navbar-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      height: 68px;
+    }
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.5rem;
+      color: var(--morado-oscuro);
+      letter-spacing: 0.3px;
+    }
+    .navbar-brand .paw { font-size: 1.6rem; }
+    .navbar-brand span { color: var(--morado); }
+
+    .navbar-search {
+      flex: 1;
+      max-width: 380px;
+      margin-left: auto;
+    }
+    .search-form {
+      display: flex;
+      background: var(--morado-palido);
+      border-radius: 50px;
+      overflow: hidden;
+      border: 2px solid transparent;
+      transition: border-color var(--transicion);
+    }
+    .search-form:focus-within { border-color: var(--morado-suave); }
+    .search-form input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 10px 16px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.9rem;
+      color: var(--texto);
+      outline: none;
+    }
+    .search-form input::placeholder { color: var(--gris-texto); }
+    .search-form button {
+      background: var(--morado);
+      border: none;
+      padding: 10px 16px;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background var(--transicion);
+    }
+    .search-form button:hover { background: var(--morado-oscuro); }
+
+    .navbar-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-link {
+      padding: 8px 16px;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      transition: all var(--transicion);
+      color: var(--gris-texto);
+    }
+    .nav-link:hover { background: var(--morado-palido); color: var(--morado-oscuro); }
+    .nav-link.active { background: var(--morado); color: white; }
+
+    /* ─── Mensajes ──────────────────────────────────── */
+    .messages-bar {
+      max-width: 1200px;
+      margin: 16px auto 0;
+      padding: 0 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .msg {
+      padding: 12px 20px;
+      border-radius: var(--radio);
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .msg-success { background: #e8f8ec; color: #2e7d42; border-left: 4px solid var(--exito); }
+    .msg-error   { background: #fdecea; color: #b71c1c; border-left: 4px solid var(--error); }
+    .msg-info    { background: var(--morado-palido); color: var(--morado-oscuro); border-left: 4px solid var(--morado); }
+    .msg-warning { background: #fff8e1; color: #7a5c00; border-left: 4px solid var(--advertencia); }
+
+    /* ─── Contenido principal ───────────────────────── */
+    .main-content {
+      flex: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px;
+      width: 100%;
+    }
+
+    /* ─── Botones ───────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 11px 24px;
+      border-radius: 50px;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 0.9rem;
+      border: none;
+      cursor: pointer;
+      transition: all var(--transicion);
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: var(--morado);
+      color: white;
+      box-shadow: 0 4px 12px rgba(155,126,200,0.35);
+    }
+    .btn-primary:hover {
+      background: var(--morado-oscuro);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: var(--sombra-hover);
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--morado);
+      border: 2px solid var(--morado-suave);
+    }
+    .btn-outline:hover {
+      background: var(--morado-palido);
+      color: var(--morado-oscuro);
+    }
+    .btn-danger {
+      background: #fdecea;
+      color: var(--error);
+      border: 2px solid #f8c4c4;
+    }
+    .btn-danger:hover { background: var(--error); color: white; }
+    .btn-sm { padding: 7px 16px; font-size: 0.82rem; }
+
+    /* ─── Cards ─────────────────────────────────────── */
+    .card {
+      background: var(--blanco);
+      border-radius: var(--radio-lg);
+      box-shadow: var(--sombra);
+      overflow: hidden;
+      transition: transform var(--transicion), box-shadow var(--transicion);
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--sombra-hover);
+    }
+
+    /* ─── Formularios ───────────────────────────────── */
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--morado-suave);
+      border-radius: var(--radio);
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.95rem;
+      color: var(--texto);
+      background: var(--blanco);
+      outline: none;
+      transition: border-color var(--transicion), box-shadow var(--transicion);
+    }
+    .form-input:focus {
+      border-color: var(--morado);
+      box-shadow: 0 0 0 3px rgba(155,126,200,0.18);
+    }
+    .form-group { margin-bottom: 20px; }
+    .form-label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 7px;
+      color: var(--texto);
+      font-size: 0.9rem;
+    }
+    .form-error { color: var(--error); font-size: 0.82rem; margin-top: 5px; font-weight: 600; }
+
+    /* ─── Badges ────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+    .badge-disponible { background: #e8f8ec; color: #2e7d42; }
+    .badge-agotado    { background: #fdecea; color: var(--error); }
+
+    /* ─── Footer ─────────────────────────────────────── */
+    footer {
+      background: var(--blanco);
+      border-top: 2px solid var(--morado-palido);
+      padding: 32px 24px;
+      text-align: center;
+      color: var(--gris-texto);
+      font-size: 0.9rem;
+    }
+    footer .footer-brand {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.2rem;
+      color: var(--morado-oscuro);
+      margin-bottom: 6px;
+    }
+    footer p { margin: 4px 0; }
+    footer a { color: var(--morado); font-weight: 700; }
+
+    /* ─── Utility ─────────────────────────────────────── */
+    .text-center { text-align: center; }
+    .mt-8  { margin-top: 8px; }
+    .mt-16 { margin-top: 16px; }
+    .mt-24 { margin-top: 24px; }
+    .mb-24 { margin-bottom: 24px; }
+
+    /* ─── Responsive ─────────────────────────────────── */
+    @media (max-width: 768px) {
+      .navbar-inner { flex-wrap: wrap; height: auto; padding: 12px 16px; gap: 10px; }
+      .navbar-search { max-width: 100%; width: 100%; order: 3; flex: none; }
+      .main-content { padding: 20px 16px; }
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="{% url 'catalogo' %}" class="navbar-brand">
+        <span class="paw">🐾</span>
+        Mascotas<span>Felices</span>
+      </a>
+
+      <div class="navbar-search">
+        <form class="search-form" method="GET" action="{% url 'catalogo' %}">
+          <input type="text" name="q" placeholder="Buscar productos..." value="{{ request.GET.q }}">
+          <button type="submit">🔍</button>
+        </form>
+      </div>
+
+      <div class="navbar-links">
+        <a href="{% url 'catalogo' %}" class="nav-link {% block nav_catalogo %}{% endblock %}">Catálogo</a>
+        {% if user.is_authenticated %}
+          {% if user.is_staff or user.is_superuser %}
+            <a href="{% url 'admin_panel' %}" class="nav-link">Panel Admin</a>
+            <a href="{% url 'admin_logout' %}" class="nav-link">Salir</a>
+          {% else %}
+            <a href="{% url 'mis_pedidos' %}" class="nav-link">Mis pedidos 🧾</a>
+            <a href="{% url 'ver_carrito' %}" class="nav-link">🛒</a>
+            <a href="{% url 'perfil' %}" class="nav-link">Perfil👤</a>
+            <a href="{% url 'admin_logout' %}" class="nav-link">Salir</a>
+          {% endif %}
+        {% else %}
+          <a href="{% url 'login' %}" class="btn btn-primary btn-sm">Iniciar sesión</a>
+          <a href="{% url 'registro' %}" class="btn btn-primary btn-sm">Registrarse</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mensajes -->
+  {% if messages %}
+    <div class="messages-bar">
+      {% for message in messages %}
+        <div class="msg msg-{{ message.tags|default:'info' }}">
+          {% if 'success' in message.tags %}✅{% elif 'error' in message.tags %}❌{% elif 'warning' in message.tags %}⚠️{% else %}ℹ️{% endif %}
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Contenido -->
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-brand">🐾 Mascotas Felices</div>
+    <p>📍 Calle 12 No 25-60, Vda Siete Trojes, Funza</p>
+    <p>📱 <a href="https://wa.me/573202748980">3202748980</a></p>
+    <p style="margin-top:12px; font-size:0.8rem; opacity:0.6;">© 2025 Mascotas Felices · Todos los derechos reservados</p>
+  </footer>
+
+  {% block extra_js %}{% endblock %}
+
+</body>
+</html>

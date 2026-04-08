@@ -1,0 +1,240 @@
+{% extends 'tienda/base.html' %}
+{% block title %}Panel Admin · Mascotas Felices{% endblock %}
+{% block nav_admin %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .panel-header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    color: var(--morado-oscuro);
+  }
+  .panel-header p { color: var(--gris-texto); font-size: 0.95rem; margin-top: 4px; }
+
+  /* Stats */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: var(--blanco);
+    border-radius: var(--radio-lg);
+    padding: 20px;
+    box-shadow: var(--sombra);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .stat-emoji { font-size: 2rem; }
+  .stat-valor { font-family: 'Fredoka One', cursive; font-size: 2rem; color: var(--morado-oscuro); }
+  .stat-label { font-size: 0.82rem; color: var(--gris-texto); font-weight: 700; }
+
+  /* Tabla */
+  .tabla-wrap {
+    background: var(--blanco);
+    border-radius: var(--radio-lg);
+    box-shadow: var(--sombra);
+    overflow: hidden;
+  }
+  .tabla-header {
+    padding: 20px 24px;
+    border-bottom: 2px solid var(--morado-palido);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .tabla-header h2 { font-family: 'Fredoka One', cursive; font-size: 1.2rem; color: var(--morado-oscuro); }
+
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    background: var(--gris-claro);
+    padding: 14px 16px;
+    text-align: left;
+    font-weight: 800;
+    font-size: 0.82rem;
+    color: var(--gris-texto);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--morado-palido);
+  }
+  td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--morado-palido);
+    font-size: 0.9rem;
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--gris-claro); }
+
+  .td-img {
+    width: 52px; height: 52px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: var(--morado-palido);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    overflow: hidden;
+  }
+  .td-img img { width: 100%; height: 100%; object-fit: cover; }
+
+  .producto-nombre-td { font-weight: 800; color: var(--texto); }
+  .precio-td { font-family: 'Fredoka One', cursive; font-size: 1.05rem; color: var(--morado-oscuro); }
+
+  .acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .sin-productos {
+    padding: 56px;
+    text-align: center;
+    color: var(--gris-texto);
+  }
+  .sin-productos .emoji { font-size: 3rem; margin-bottom: 12px; }
+  .sin-productos p { margin-bottom: 20px; }
+
+  @media (max-width: 700px) {
+    .col-hide { display: none; }
+    table { font-size: 0.82rem; }
+    td, th { padding: 10px 10px; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="panel-header">
+  <div>
+    <h1>🛠️ Panel de Administración</h1>
+    <p>Gestiona los productos de Mascotas Felices</p>
+  </div>
+  <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+
+    <!-- 🔔 BADGE HU8 -->
+    <a href="{% url 'notificaciones_admin' %}" class="btn btn-outline" style="position:relative;">
+      🔔 Notificaciones
+      {% if no_leidas > 0 %}
+        <span style="
+          position:absolute; top:-8px; right:-8px;
+          background:#e53935; color:#fff;
+          font-size:0.72rem; font-weight:800;
+          border-radius:999px;
+          min-width:20px; height:20px;
+          display:flex; align-items:center; justify-content:center;
+          padding: 0 5px;
+          font-family: sans-serif;
+          line-height:1;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        ">{{ no_leidas }}</span>
+      {% endif %}
+    </a>
+
+    <a href="{% url 'producto_crear' %}" class="btn btn-primary">+ Nuevo producto</a>
+    <a href="{% url 'categorias_lista' %}" class="btn btn-outline">
+  🏷️ Gestionar categorías
+    </a>
+    <a href="{% url 'pedidos_admin' %}" class="tu-clase-de-boton">
+  🧾 Ver pedidos
+    </a>
+  </div>
+</div>
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <span class="stat-emoji">📦</span>
+    <span class="stat-valor">{{ productos.count }}</span>
+    <span class="stat-label">Total productos</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-emoji">✅</span>
+    <span class="stat-valor">{{ productos|length }}</span>
+    <span class="stat-label">Activos</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-emoji">⭐</span>
+    <span class="stat-valor">{% with productos|length as total %}{{ total }}{% endwith %}</span>
+    <span class="stat-label">En catálogo</span>
+  </div>
+</div>
+
+<!-- Tabla -->
+<div class="tabla-wrap">
+  <div class="tabla-header">
+    <h2>📦 Productos</h2>
+    <a href="{% url 'catalogo' %}" class="btn btn-outline btn-sm">Ver catálogo →</a>
+  </div>
+
+  {% if productos %}
+    <table>
+      <thead>
+        <tr>
+          <th>Imagen</th>
+          <th>Nombre</th>
+          <th class="col-hide">Categoría</th>
+          <th>Precio</th>
+          <th>Stock</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for producto in productos %}
+          <tr>
+            <td>
+              <div class="td-img">
+                {% if producto.imagen %}
+                  <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" loading="lazy">
+                {% else %}
+                  🐾
+                {% endif %}
+              </div>
+            </td>
+            <td>
+              <span class="producto-nombre-td">{{ producto.nombre }}</span>
+              {% if producto.destacado %}<span class="badge" style="background:#fff3cd;color:#856404;margin-left:6px;">⭐ Destacado</span>{% endif %}
+            </td>
+            <td class="col-hide">{{ producto.categoria.nombre|default:"—" }}</td>
+            <td><span class="precio-td">${{ producto.precio|floatformat:"0" }}</span></td>
+            <td>
+              {% if producto.stock > 0 %}
+                <span style="color:#2e7d42; font-weight:800;">{{ producto.stock }}</span>
+              {% else %}
+                <span style="color:var(--error); font-weight:800;">0</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if producto.activo %}
+                <span class="badge badge-disponible">Activo</span>
+              {% else %}
+                <span class="badge badge-agotado">Inactivo</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="acciones">
+                <a href="{% url 'producto_editar' producto.pk %}" class="btn btn-outline btn-sm">✏️ Editar</a>
+                <a href="{% url 'producto_eliminar' producto.pk %}" class="btn btn-danger btn-sm">🗑️</a>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="sin-productos">
+      <div class="emoji">📦</div>
+      <p>No hay productos aún. ¡Empezá agregando el primero!</p>
+      <a href="{% url 'producto_crear' %}" class="btn btn-primary">+ Agregar producto</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

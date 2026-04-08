@@ -1,0 +1,112 @@
+{% extends 'tienda/base.html' %}
+{% block title %}Iniciar sesión · Mascotas Felices{% endblock %}
+
+{% block extra_css %}
+<style>
+  .login-page {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .login-card {
+    background: var(--blanco);
+    border-radius: var(--radio-lg);
+    box-shadow: var(--sombra-hover);
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 420px;
+  }
+  .login-header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .login-header .emoji { font-size: 3.5rem; display: block; margin-bottom: 12px; }
+  .login-header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    color: var(--morado-oscuro);
+    margin-bottom: 6px;
+  }
+  .login-header p { color: var(--gris-texto); font-size: 0.9rem; }
+
+  .form-input { display: block; }
+
+  .login-footer {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--gris-texto);
+  }
+  .login-footer a { color: var(--morado); font-weight: 700; }
+
+  .divider {
+    height: 1px;
+    background: var(--morado-palido);
+    margin: 24px 0;
+  }
+  .btn-login-full {
+    width: 100%;
+    justify-content: center;
+    padding: 14px;
+    font-size: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-header">
+      <span class="emoji">🔑</span>
+      <h1>Panel de Administración</h1>
+      <p>Ingresa tus credenciales para gestionar la tienda</p>
+    </div>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label class="form-label" for="{{ form.username.id_for_label }}">
+          👤 {{ form.username.label }}
+        </label>
+        {{ form.username }}
+        {% if form.username.errors %}
+          {% for error in form.username.errors %}
+            <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="{{ form.password.id_for_label }}">
+          🔒 {{ form.password.label }}
+        </label>
+        {{ form.password }}
+        {% if form.password.errors %}
+          {% for error in form.password.errors %}
+            <div class="form-error">{{ error }}</div>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      {% if form.non_field_errors %}
+        <div style="background:#fdecea; color:#b71c1c; padding:12px 16px; border-radius:var(--radio); margin-bottom:16px; font-weight:700; font-size:0.9rem;">
+          ❌ {{ form.non_field_errors.0 }}
+        </div>
+      {% endif %}
+
+      <button type="submit" class="btn btn-primary btn-login-full">
+        🐾 Iniciar sesión
+      </button>
+    </form>
+
+    <div class="divider"></div>
+
+    <div class="login-footer">
+      <a href="{% url 'catalogo' %}">← Volver al catálogo</a>
+      <a href="{% url 'login' %}">← No eres admin?</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

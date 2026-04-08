@@ -1,0 +1,162 @@
+{% extends 'tienda/base.html' %}
+
+{% block extra_css %}
+<style>
+  .pedidos-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .pedido-card {
+    padding: 20px;
+  }
+
+  .pedido-header {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    border-bottom: 2px solid var(--morado-palido);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+  }
+
+  .pedido-header h3 {
+    margin: 0;
+    color: var(--morado-oscuro);
+  }
+
+  .pedido-info {
+    font-size: 0.9rem;
+    color: var(--gris-texto);
+  }
+
+  .estado {
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Estados HU9 ── */
+  .estado-pendiente  { background: #fff8e1; color: #7a5c00; }
+  .estado-en_proceso { background: #e3f2fd; color: #1565c0; }
+  .estado-entregado  { background: #e8f5e9; color: #2e7d32; }
+  .estado-cancelado  { background: #fdecea; color: #b71c1c; }
+
+  .detalles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 12px;
+  }
+
+  .detalle-item {
+    background: var(--gris-claro);
+    padding: 12px;
+    border-radius: var(--radio);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .detalle-item strong {
+    color: var(--texto);
+  }
+
+  .detalle-precio {
+    font-weight: 700;
+    color: var(--morado-oscuro);
+  }
+
+  .pedido-total {
+    margin-top: 15px;
+    text-align: right;
+    font-weight: 800;
+    font-size: 1rem;
+    color: var(--morado-oscuro);
+  }
+
+  .pedido-actions {
+    margin-top: 12px;
+    display: flex;
+    justify-content: flex-end;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2 class="mb-24">Mis pedidos 🧾</h2>
+
+{% if pedidos %}
+  <div class="pedidos-container">
+
+    {% for pedido in pedidos %}
+      <div class="card pedido-card">
+
+        <!-- HEADER -->
+        <div class="pedido-header">
+          <div>
+            <h3>Pedido #{{ pedido.id }}</h3>
+            <div class="pedido-info">
+              📅 {{ pedido.fecha|date:"d/m/Y H:i" }}
+            </div>
+          </div>
+
+          <div>
+            <span class="estado estado-{{ pedido.estado }}">
+              {{ pedido.get_estado_display }}
+            </span>
+          </div>
+        </div>
+
+        <!-- DETALLES -->
+        <div class="detalles-grid">
+          {% for detalle in pedido.detalles.all %}
+            <div class="detalle-item">
+              <strong>{{ detalle.producto.nombre }}</strong>
+              <span>Cantidad: {{ detalle.cantidad }}</span>
+              <span class="detalle-precio">
+                ${{ detalle.precio|floatformat:0 }} c/u
+              </span>
+              <span>
+                Subtotal: ${{ detalle.precio|floatformat:0 }}
+              </span>
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- TOTAL -->
+        <div class="pedido-total">
+          Total: ${{ pedido.get_total|floatformat:0 }}
+        </div>
+
+        <!-- ACCIÓN: cancelar solo si está pendiente -->
+        {% if pedido.estado == 'pendiente' %}
+          <div class="pedido-actions">
+            <form method="POST" action="{% url 'cancelar_pedido' pedido.id %}"
+                  onsubmit="return confirm('¿Seguro que deseas cancelar este pedido? Esta acción devolverá el stock.');">
+              {% csrf_token %}
+              <button class="btn btn-danger btn-sm">
+                ❌ Cancelar pedido
+              </button>
+            </form>
+          </div>
+        {% endif %}
+
+      </div>
+    {% endfor %}
+
+  </div>
+{% else %}
+  <div class="card text-center" style="padding:30px;">
+    <p style="font-size:1.1rem;">No tienes pedidos aún 😢</p>
+    <a href="{% url 'catalogo' %}" class="btn btn-primary mt-16">
+      🐾 Ir a comprar
+    </a>
+  </div>
+{% endif %}
+
+{% endblock %}

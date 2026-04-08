@@ -1,0 +1,152 @@
+{% extends 'tienda/base.html' %}
+{% block title %}{{ accion }} producto · Mascotas Felices{% endblock %}
+{% block nav_admin %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  .form-card {
+    background: var(--blanco);
+    border-radius: var(--radio-lg);
+    box-shadow: var(--sombra);
+    padding: 40px;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  .form-card-header {
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--morado-palido);
+  }
+  .form-card-header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.7rem;
+    color: var(--morado-oscuro);
+    margin-bottom: 4px;
+  }
+  .form-card-header p { color: var(--gris-texto); font-size: 0.9rem; }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 20px;
+  }
+  .form-grid .full-width { grid-column: 1 / -1; }
+
+  .check-group {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    padding: 16px;
+    background: var(--morado-palido);
+    border-radius: var(--radio);
+    margin-bottom: 20px;
+  }
+  .check-item { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .check-item input[type="checkbox"] {
+    width: 18px; height: 18px;
+    accent-color: var(--morado);
+    cursor: pointer;
+  }
+  .check-item label { font-weight: 700; color: var(--texto); font-size: 0.9rem; cursor: pointer; }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 2px solid var(--morado-palido);
+  }
+
+  .img-preview-wrap {
+    margin-top: 8px;
+  }
+  .img-preview-wrap img {
+    max-width: 120px;
+    border-radius: var(--radio);
+    border: 2px solid var(--morado-suave);
+  }
+
+  @media (max-width: 600px) {
+    .form-card { padding: 24px 16px; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-card">
+  <div class="form-card-header">
+    <h1>{% if accion == 'Crear' %}➕{% else %}✏️{% endif %} {{ accion }} producto</h1>
+    <p>{% if accion == 'Crear' %}Completá los datos del nuevo producto{% else %}Modificá los datos del producto{{ producto.nombre }}{% endif %}</p>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-grid">
+
+      <div class="form-group full-width">
+        <label class="form-label" for="{{ form.nombre.id_for_label }}">{{ form.nombre.label }}</label>
+        {{ form.nombre }}
+        {% for error in form.nombre.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="form-group full-width">
+        <label class="form-label" for="{{ form.descripcion.id_for_label }}">{{ form.descripcion.label }}</label>
+        {{ form.descripcion }}
+        {% for error in form.descripcion.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="{{ form.precio.id_for_label }}">{{ form.precio.label }}</label>
+        {{ form.precio }}
+        {% for error in form.precio.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="{{ form.stock.id_for_label }}">{{ form.stock.label }}</label>
+        {{ form.stock }}
+        {% for error in form.stock.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="form-group full-width">
+        <label class="form-label" for="{{ form.categoria.id_for_label }}">{{ form.categoria.label }}</label>
+        {{ form.categoria }}
+        {% for error in form.categoria.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+      </div>
+
+      <div class="form-group full-width">
+        <label class="form-label" for="{{ form.imagen.id_for_label }}">{{ form.imagen.label }}</label>
+        {{ form.imagen }}
+        {% if producto.imagen %}
+          <div class="img-preview-wrap">
+            <img src="{{ producto.imagen.url }}" alt="Imagen actual">
+            <p style="font-size:0.8rem; color:var(--gris-texto); margin-top:6px;">Imagen actual. Subí una nueva para reemplazarla.</p>
+          </div>
+        {% endif %}
+        {% for error in form.imagen.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+      </div>
+
+    </div>
+
+    <!-- Checkboxes -->
+    <div class="check-group">
+      <label class="check-item">
+        {{ form.activo }}
+        <span>{{ form.activo.label }}</span>
+      </label>
+      <label class="check-item">
+        {{ form.destacado }}
+        <span>{{ form.destacado.label }}</span>
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <a href="{% url 'admin_panel' %}" class="btn btn-outline">Cancelar</a>
+      <button type="submit" class="btn btn-primary">
+        {% if accion == 'Crear' %}➕ Crear producto{% else %}💾 Guardar cambios{% endif %}
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

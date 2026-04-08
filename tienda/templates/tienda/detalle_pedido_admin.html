@@ -1,0 +1,311 @@
+{% extends 'tienda/base.html' %}
+
+{% block title %}Pedido #{{ pedido.id }} · Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .detalle-wrap {
+    max-width: 860px;
+    margin: 32px auto;
+    padding: 0 16px;
+  }
+
+  .back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--gris-texto); text-decoration: none;
+    font-size: 0.9rem; margin-bottom: 24px;
+    transition: color var(--transicion);
+  }
+  .back-link:hover { color: var(--morado-oscuro); }
+
+  .card {
+    background: var(--blanco);
+    border: 1px solid var(--morado-palido);
+    border-radius: var(--radio-lg);
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--sombra);
+  }
+
+  .card-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem;
+    color: var(--morado-oscuro);
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--morado-palido);
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } }
+
+  .info-item label {
+    font-size: 0.75rem; color: var(--gris-texto);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    display: block; margin-bottom: 2px; font-weight: 700;
+  }
+  .info-item span {
+    font-size: 0.9rem; color: var(--texto); font-weight: 600;
+  }
+
+  /* Badges de estado */
+  .badge-estado {
+    display: inline-flex; padding: 4px 14px;
+    border-radius: 50px; font-size: 0.78rem;
+    font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .badge-pendiente  { background: #fff8e1; color: #7a5c00; }
+  .badge-en_proceso { background: #e3f2fd; color: #1565c0; }
+  .badge-entregado  { background: #e8f5e9; color: #2e7d32; }
+  .badge-cancelado  { background: #fdecea; color: #b71c1c; }
+
+  /* Stepper */
+  .stepper {
+    display: flex; align-items: center;
+    margin-bottom: 24px;
+  }
+  .step {
+    display: flex; flex-direction: column;
+    align-items: center; flex: 1; position: relative;
+  }
+  .step-circle {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; font-weight: 800; z-index: 1;
+    border: 2px solid var(--morado-suave);
+    background: var(--blanco);
+    color: var(--gris-texto);
+  }
+  .step.active .step-circle {
+    background: var(--morado);
+    border-color: var(--morado);
+    color: white;
+  }
+  .step.done .step-circle {
+    background: #4caf50;
+    border-color: #4caf50;
+    color: white;
+  }
+  .step-label {
+    font-size: 0.75rem; margin-top: 6px;
+    color: var(--gris-texto); font-weight: 700;
+  }
+  .step.active .step-label { color: var(--morado-oscuro); }
+  .step.done .step-label   { color: #2e7d32; }
+  .step-line {
+    flex: 1; height: 3px;
+    background: var(--morado-palido);
+    margin-top: -20px; z-index: 0;
+  }
+  .step-line.done { background: #4caf50; }
+
+  /* Botones de acción */
+  .btn-accion {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 24px; border-radius: var(--radio-lg);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem; font-weight: 800;
+    border: none; cursor: pointer;
+    text-decoration: none;
+    transition: all var(--transicion);
+  }
+  .btn-proceso {
+    background: var(--morado);
+    color: white;
+  }
+  .btn-proceso:hover { background: var(--morado-oscuro); transform: translateY(-2px); }
+  .btn-entregado {
+    background: #4caf50;
+    color: white;
+  }
+  .btn-entregado:hover { background: #2e7d32; transform: translateY(-2px); }
+
+  /* Tabla productos */
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    font-size: 0.8rem; color: var(--gris-texto);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--morado-palido);
+    text-align: left;
+  }
+  tbody td {
+    padding: 12px; font-size: 0.9rem; color: var(--texto);
+    border-bottom: 1px solid var(--morado-palido);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+
+  .total-row {
+    display: flex; justify-content: flex-end;
+    padding-top: 16px; font-size: 1rem;
+    font-weight: 800; color: var(--morado-oscuro);
+  }
+
+  .mensaje-estado {
+    padding: 14px 18px;
+    border-radius: var(--radio);
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+  .msg-info     { background: #e3f2fd; color: #1565c0; }
+  .msg-success  { background: #e8f5e9; color: #2e7d32; }
+  .msg-error    { background: #fdecea; color: #b71c1c; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detalle-wrap">
+
+  <a href="{% url 'notificaciones_admin' %}" class="back-link">← Volver a notificaciones</a>
+
+  <!-- Título con badge -->
+  <h1 style="font-family:'Fredoka One',cursive; font-size:1.8rem; color:var(--morado-oscuro); margin-bottom:24px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+    Pedido #{{ pedido.id }}
+    <span class="badge-estado badge-{{ pedido.estado }}">{{ pedido.get_estado_display }}</span>
+  </h1>
+
+  <!-- STEPPER -->
+  {% if pedido.estado != 'cancelado' %}
+  <div class="stepper">
+
+    <div class="step
+      {% if pedido.estado == 'pendiente' %}active
+      {% elif pedido.estado == 'en_proceso' or pedido.estado == 'entregado' %}done
+      {% endif %}">
+      <div class="step-circle">1</div>
+      <span class="step-label">Pendiente</span>
+    </div>
+
+    <div class="step-line
+      {% if pedido.estado == 'en_proceso' or pedido.estado == 'entregado' %}done{% endif %}">
+    </div>
+
+    <div class="step
+      {% if pedido.estado == 'en_proceso' %}active
+      {% elif pedido.estado == 'entregado' %}done
+      {% endif %}">
+      <div class="step-circle">2</div>
+      <span class="step-label">En Proceso</span>
+    </div>
+
+    <div class="step-line {% if pedido.estado == 'entregado' %}done{% endif %}"></div>
+
+    <div class="step {% if pedido.estado == 'entregado' %}done{% endif %}">
+      <div class="step-circle">3</div>
+      <span class="step-label">Entregado</span>
+    </div>
+
+  </div>
+  {% endif %}
+
+  <!-- GESTIÓN DE ESTADO -->
+  <div class="card">
+    <div class="card-title">⚙️ Gestión de estado</div>
+
+    {% if pedido.estado == 'pendiente' %}
+      <div class="mensaje-estado msg-info">
+        📋 Este pedido está pendiente de revisión. Cámbialo a <strong>En Proceso</strong> cuando empieces a prepararlo.
+      </div>
+      <form method="POST" action="{% url 'cambiar_estado_pedido' pedido.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="estado" value="en_proceso">
+        <button type="submit" class="btn-accion btn-proceso">
+          🔄 Marcar como En Proceso
+        </button>
+      </form>
+
+    {% elif pedido.estado == 'en_proceso' %}
+      <div class="mensaje-estado msg-info">
+        🚚 El pedido está siendo preparado. Cámbialo a <strong>Entregado</strong> cuando se haya entregado al cliente.
+      </div>
+      <form method="POST" action="{% url 'cambiar_estado_pedido' pedido.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="estado" value="entregado">
+        <button type="submit" class="btn-accion btn-entregado">
+          ✅ Marcar como Entregado
+        </button>
+      </form>
+
+    {% elif pedido.estado == 'entregado' %}
+      <div class="mensaje-estado msg-success">
+        ✅ Este pedido ya fue entregado correctamente. No requiere más acciones.
+      </div>
+
+    {% elif pedido.estado == 'cancelado' %}
+      <div class="mensaje-estado msg-error">
+        ❌ Este pedido fue cancelado por el usuario y no puede modificarse.
+      </div>
+    {% endif %}
+
+  </div>
+
+  <!-- DATOS DEL CLIENTE -->
+  <div class="card">
+    <div class="card-title">👤 Datos del cliente</div>
+    <div class="info-grid">
+      <div class="info-item">
+        <label>Nombre completo</label>
+        <span>{{ pedido.usuario.get_full_name|default:pedido.usuario.username }}</span>
+      </div>
+      <div class="info-item">
+        <label>Correo electrónico</label>
+        <span>{{ pedido.usuario.email }}</span>
+      </div>
+      <div class="info-item">
+        <label>Teléfono</label>
+        <span>{{ pedido.usuario.perfil.telefono|default:"No registrado" }}</span>
+      </div>
+      <div class="info-item">
+        <label>Identificación</label>
+        <span>{{ pedido.usuario.perfil.identificacion|default:"No registrado" }}</span>
+      </div>
+      <div class="info-item">
+        <label>Fecha del pedido</label>
+        <span>{{ pedido.fecha|date:"d/m/Y H:i" }}</span>
+      </div>
+      <div class="info-item">
+        <label>Dirección de entrega</label>
+        <span>
+          {% with pedido.usuario.direcciones.first as dir %}
+            {{ dir.direccion|default:"No registrada" }}
+          {% endwith %}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUCTOS DEL PEDIDO -->
+  <div class="card">
+    <div class="card-title">🛒 Productos del pedido</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Precio unitario</th>
+          <th>Cantidad</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for detalle in detalles %}
+        <tr>
+          <td><strong>{{ detalle.producto.nombre }}</strong></td>
+          <td>${{ detalle.precio|floatformat:0 }}</td>
+          <td>{{ detalle.cantidad }}</td>
+          <td>${{ detalle.precio|floatformat:0 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="total-row">
+      💰 Total: ${{ pedido.get_total|floatformat:0 }}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

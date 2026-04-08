@@ -1,0 +1,37 @@
+{% extends 'tienda/base.html' %}
+
+{% block title %}Eliminar categoría · Admin{% endblock %}
+
+{% block content %}
+<div style="max-width:500px; margin:48px auto; padding:0 16px;">
+  <div style="background:var(--blanco); border-radius:var(--radio-lg);
+              box-shadow:var(--sombra); padding:32px; text-align:center;">
+
+    <div style="font-size:3rem; margin-bottom:16px;">⚠️</div>
+    <h2 style="font-family:'Fredoka One',cursive; color:var(--morado-oscuro); margin-bottom:12px;">
+      ¿Eliminar categoría?
+    </h2>
+    <p style="color:var(--gris-texto); margin-bottom:24px;">
+      Estás por eliminar <strong>{{ categoria.icono }} {{ categoria.nombre }}</strong>.
+      Los productos asociados quedarán sin categoría.
+    </p>
+
+    <form method="POST" style="display:flex; gap:12px; justify-content:center;">
+      {% csrf_token %}
+      <button type="submit"
+        style="padding:12px 24px; background:#b71c1c; color:white;
+               border:none; border-radius:var(--radio-lg); font-family:'Nunito',sans-serif;
+               font-weight:800; font-size:0.95rem; cursor:pointer;">
+        🗑️ Sí, eliminar
+      </button>
+      <a href="{% url 'categorias_lista' %}"
+        style="padding:12px 24px; background:var(--morado-palido); color:var(--morado-oscuro);
+               border-radius:var(--radio-lg); font-family:'Nunito',sans-serif;
+               font-weight:800; font-size:0.95rem; text-decoration:none;">
+        Cancelar
+      </a>
+    </form>
+
+  </div>
+</div>
+{% endblock %}

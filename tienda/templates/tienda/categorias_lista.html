@@ -1,0 +1,130 @@
+{% extends 'tienda/base.html' %}
+
+{% block title %}Categorías · Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .page-wrap { max-width: 860px; margin: 32px auto; padding: 0 16px; }
+
+  .page-header {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+  }
+  .page-header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem; color: var(--morado-oscuro); margin: 0;
+  }
+
+  .btn-nuevo {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--morado); color: white;
+    padding: 10px 20px; border-radius: var(--radio-lg);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800; font-size: 0.9rem;
+    text-decoration: none;
+    transition: background var(--transicion);
+  }
+  .btn-nuevo:hover { background: var(--morado-oscuro); }
+
+  .tabla-card {
+    background: var(--blanco);
+    border-radius: var(--radio-lg);
+    box-shadow: var(--sombra);
+    overflow: hidden;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    background: var(--morado-palido);
+    padding: 12px 16px;
+    font-size: 0.8rem; font-weight: 800;
+    color: var(--morado-oscuro);
+    text-transform: uppercase; letter-spacing: 0.05em;
+    text-align: left;
+  }
+  tbody td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--morado-palido);
+    font-size: 0.9rem; color: var(--texto);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: #faf8ff; }
+
+  .icono-cell { font-size: 1.4rem; }
+
+  .acciones { display: flex; gap: 8px; }
+  .btn-edit, .btn-del {
+    padding: 6px 14px; border-radius: var(--radio);
+    font-size: 0.82rem; font-weight: 700;
+    text-decoration: none; border: none; cursor: pointer;
+    transition: all var(--transicion);
+  }
+  .btn-edit { background: var(--morado-palido); color: var(--morado-oscuro); }
+  .btn-edit:hover { background: var(--morado-suave); }
+  .btn-del { background: #fdecea; color: #b71c1c; }
+  .btn-del:hover { background: #ffcdd2; }
+
+  .empty-state {
+    text-align: center; padding: 48px 24px;
+    color: var(--gris-texto);
+  }
+  .empty-state .emoji { font-size: 3rem; margin-bottom: 12px; }
+
+  .back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--gris-texto); text-decoration: none;
+    font-size: 0.9rem; margin-bottom: 20px;
+  }
+  .back-link:hover { color: var(--morado-oscuro); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+
+  <a href="{% url 'admin_panel' %}" class="back-link">← Volver al panel</a>
+
+  <div class="page-header">
+    <h1>🏷️ Categorías</h1>
+    <a href="{% url 'categoria_crear' %}" class="btn-nuevo">+ Nueva categoría</a>
+  </div>
+
+  <div class="tabla-card">
+    {% if categorias %}
+    <table>
+      <thead>
+        <tr>
+          <th>Ícono</th>
+          <th>Nombre</th>
+          <th>Slug</th>
+          <th>Descripción</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cat in categorias %}
+        <tr>
+          <td class="icono-cell">{{ cat.icono|default:"—" }}</td>
+          <td><strong>{{ cat.nombre }}</strong></td>
+          <td><code>{{ cat.slug }}</code></td>
+          <td>{{ cat.descripcion|default:"Sin descripción"|truncatechars:60 }}</td>
+          <td>
+            <div class="acciones">
+              <a href="{% url 'categoria_editar' cat.pk %}" class="btn-edit">✏️ Editar</a>
+              <a href="{% url 'categoria_eliminar' cat.pk %}" class="btn-del">🗑️ Eliminar</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="emoji">🏷️</div>
+      <p>No hay categorías aún. <a href="{% url 'categoria_crear' %}">Crea la primera</a>.</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
